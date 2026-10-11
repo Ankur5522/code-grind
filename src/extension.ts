@@ -7,7 +7,7 @@ import { SidebarProvider } from "./sidebar-provider";
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(context);
-
+ 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(SidebarProvider.viewType, sidebarProvider)
   );
