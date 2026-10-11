@@ -6,13 +6,13 @@ import { getLevelFromCount } from "@core/types";
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "codegrind.sidebarView";
   private _view?: vscode.WebviewView;
-  private _fileLengthCache = new Map<string, number>();
 
   private static readonly STORAGE_KEY = "codeGrindStats";
 
   constructor(private readonly _context: vscode.ExtensionContext) {
-    vscode.workspace.onDidSaveTextDocument((document) => {
-      this._handleDocumentSave(document);
+    // listen text changes
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      this._handleDocumentChange(event);
     });
 
     vscode.window.onDidChangeWindowState((windowState) => {
@@ -22,37 +22,44 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  private _handleDocumentSave(document: vscode.TextDocument) {
-    if (document.uri.scheme !== "file") {
+  private _handleDocumentChange(event: vscode.TextDocumentChangeEvent) {
+    if (event.document.uri.scheme !== "file") {
       return;
     }
 
-    if (document.fileName.includes("/.git/")) {
+    if (event.document.fileName.includes("/.git/")) {
       return;
     }
 
-    const fullPath = document.fileName;
-    const fileName = fullPath.split("/").pop()!;
-    const fileExtensionsArr = fileName.split(".").slice(1);
+    const fullPath = event.document.fileName;
+    const fullPathArr = fullPath.split("/");
+    const fileName = fullPathArr[fullPathArr.length - 1];
+    const fileNameSplitOnEachDot = fileName.split(".");
+    const fileExtensionsArr = fileNameSplitOnEachDot.slice(1);
 
     if (fileExtensionsArr.length === 0) {
       return;
     }
 
     const fileExtension = `.${fileExtensionsArr.join(".")}`;
-    const currentLength = document.getText().length;
-    const previousLength = this._fileLengthCache.get(fullPath);
 
-    // baseline the file on first save, no XP awarded
-    if (previousLength === undefined) {
-      this._fileLengthCache.set(fullPath, currentLength);
+    const firstChange = event.contentChanges[0];
+    if (!firstChange) {
       return;
     }
 
-    const delta = currentLength - previousLength;
-    this._fileLengthCache.set(fullPath, currentLength);
+    // ignore Backspace, Delete, Cut
+    if (firstChange.text === "") {
+      return;
+    }
 
-    if (delta <= 0) {
+    // ignore Ctrl + Z, Ctrl + Y
+    if (event.reason) {
+      return;
+    }
+
+    const isEnter = firstChange.text.startsWith("\n") || firstChange.text.startsWith("\r\n");
+    if (firstChange.text.length > 2 && !isEnter) {
       return;
     }
 
@@ -63,22 +70,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     if (!stats[fileExtension]) {
       stats[fileExtension] = {
-        fileExtension,
+        fileExtension: fileExtension,
         count: 0,
         level: 0,
         xp: 0,
-        xpForNextLevel: 100,
+        xpForNextLevel: 500,
       };
     }
 
-    stats[fileExtension].count += delta;
+    stats[fileExtension].count += 1;
 
     const levelData = getLevelFromCount(stats[fileExtension].count);
     stats[fileExtension].level = levelData.level;
     stats[fileExtension].xp = levelData.xp;
     stats[fileExtension].xpForNextLevel = levelData.xpForNextLevel;
 
+    // save to disk forever
     this._context.globalState.update(SidebarProvider.STORAGE_KEY, stats);
+
+    // send to React for UI updating;
     this._sendStatsToWebview();
   }
 

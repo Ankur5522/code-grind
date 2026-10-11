@@ -6,15 +6,22 @@ export interface FileStat {
   xpForNextLevel: number;
 }
 
-// XP required to reach a given level: level^2 * 500
+// XP required to reach a given level: each level costs 10% more than the previous
+// level 1 = 100, level 2 = 110, level 3 = 121, ...
 export function getLevelFromCount(count: number): Pick<FileStat, "level" | "xp" | "xpForNextLevel"> {
-  const level = Math.floor(Math.sqrt(count / 500));
-  const xpForCurrentLevel = level * level * 500;
-  const xpForNextLevel = (level + 1) * (level + 1) * 500;
+  let nextLevelXp = 100;
+  let remaining = count;
+  let level = 0;
+
+  while (remaining >= nextLevelXp) {
+    remaining -= nextLevelXp;
+    nextLevelXp = Number((nextLevelXp + nextLevelXp / 10).toFixed(0));
+    level++;
+  }
 
   return {
     level,
-    xp: count - xpForCurrentLevel,
-    xpForNextLevel: xpForNextLevel - xpForCurrentLevel,
+    xp: remaining,
+    xpForNextLevel: nextLevelXp,
   };
 }
