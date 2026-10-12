@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 
 import type { FileStat } from "@core/types";
-import { getLevelFromCount } from "@core/types";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "codegrind.sidebarView";
@@ -11,18 +10,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly _context: vscode.ExtensionContext) {
     // listen text changes
-    vscode.workspace.onDidChangeTextDocument((event) => {
+    vscode.workspace.onDidChangeTextDocument(event => {
       this._handleDocumentChange(event);
     });
 
-    vscode.window.onDidChangeWindowState((windowState) => {
+    vscode.window.onDidChangeWindowState(windowState => {
       if (windowState.focused) {
         this._sendStatsToWebview();
       }
     });
   }
 
-  private _handleDocumentChange(event: vscode.TextDocumentChangeEvent) {
+  private _handleDocumentChange(
+    event: vscode.TextDocumentChangeEvent,
+  ) {
     if (event.document.uri.scheme !== "file") {
       return;
     }
@@ -58,35 +59,31 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const isEnter = firstChange.text.startsWith("\n") || firstChange.text.startsWith("\r\n");
+    const isEnter =
+      firstChange.text.startsWith("\n") ||
+      firstChange.text.startsWith("\r\n");
     if (firstChange.text.length > 2 && !isEnter) {
       return;
     }
 
-    const stats = this._context.globalState.get<Record<string, FileStat>>(
-      SidebarProvider.STORAGE_KEY,
-      {}
-    );
+    const stats = this._context.globalState.get<
+      Record<string, FileStat>
+    >(SidebarProvider.STORAGE_KEY, {});
 
     if (!stats[fileExtension]) {
       stats[fileExtension] = {
         fileExtension: fileExtension,
         count: 0,
-        level: 0,
-        xp: 0,
-        xpForNextLevel: 500,
       };
     }
 
     stats[fileExtension].count += 1;
 
-    const levelData = getLevelFromCount(stats[fileExtension].count);
-    stats[fileExtension].level = levelData.level;
-    stats[fileExtension].xp = levelData.xp;
-    stats[fileExtension].xpForNextLevel = levelData.xpForNextLevel;
-
     // save to disk forever
-    this._context.globalState.update(SidebarProvider.STORAGE_KEY, stats);
+    this._context.globalState.update(
+      SidebarProvider.STORAGE_KEY,
+      stats,
+    );
 
     // send to React for UI updating;
     this._sendStatsToWebview();
@@ -94,10 +91,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private _sendStatsToWebview() {
     if (this._view) {
-      const stats = this._context.globalState.get<Record<string, FileStat>>(
-        SidebarProvider.STORAGE_KEY,
-        {}
-      );
+      const stats = this._context.globalState.get<
+        Record<string, FileStat>
+      >(SidebarProvider.STORAGE_KEY, {});
 
       this._view.webview.postMessage({
         type: "UPDATE_STATS",
@@ -110,21 +106,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ): Thenable<void> | void {
     this._view = webviewView;
 
     // confirm js scripts executing and give access only to dist folder;
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.joinPath(this._context.extensionUri, "dist")],
+      localResourceRoots: [
+        vscode.Uri.joinPath(this._context.extensionUri, "dist"),
+      ],
     };
 
     // set HTML-markup for webview
     // webviewView.webview.html = this._get
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+    webviewView.webview.html = this._getHtmlForWebview(
+      webviewView.webview,
+    );
 
-    webviewView.webview.onDidReceiveMessage((message) => {
+    webviewView.webview.onDidReceiveMessage(message => {
       if (message.type === "READY") {
         this._sendStatsToWebview();
       }
@@ -134,12 +134,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private _getHtmlForWebview(webview: vscode.Webview): string {
     // Безпечне посилання на зібраний скрипт dist/webview.js
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "dist", "webview.js")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "dist",
+        "webview.js",
+      ),
     );
 
     // Безпечне посилання на зібрані стилі dist/webview.css (esbuild генерує їх з SCSS)
     const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "dist", "webview.css")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "dist",
+        "webview.css",
+      ),
     );
 
     // Невеликий випадковий рядок для Content Security Policy (захист від XSS)
@@ -167,9 +175,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 // Функція для створення унікального токена nonce
 function getNonce() {
   let text = "";
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
+    text += possible.charAt(
+      Math.floor(Math.random() * possible.length),
+    );
   }
   return text;
 }

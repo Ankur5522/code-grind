@@ -1,1 +1,1 @@
-export { FileStat, getLevelFromCount } from "./types";
+export { FileStat } from "./types";

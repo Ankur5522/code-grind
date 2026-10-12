@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 
 import type { FileStat } from "@core/types";
 
+import { getLevelFromCount } from "./lib/get-level-from-count";
+
 import * as s from "./stats-page.module.scss";
 
 declare function acquireVsCodeApi(): {
@@ -41,8 +43,12 @@ export const StatsPage = () => {
       ) : (
         <div className={s.statList}>
           {stats.map(statItem => {
-            const progress =
-              (statItem.xp / statItem.xpForNextLevel) * 100;
+            const {
+              currentLevel,
+              xpForNextLevel,
+              xpOnCurrentLevel,
+              progressPercent,
+            } = getLevelFromCount(statItem.count);
 
             return (
               <div
@@ -54,18 +60,18 @@ export const StatsPage = () => {
                     {statItem.fileExtension}
                   </span>
                   <span className={s.statCard__level}>
-                    LVL {statItem.level}
+                    LVL {currentLevel}
                   </span>
                 </div>
                 <div className={s.statCard__barTrack}>
                   <div
                     className={s.statCard__barFill}
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${progressPercent}%` }}
                   />
                 </div>
                 <div className={s.statCard__footer}>
                   <span>
-                    {statItem.xp} / {statItem.xpForNextLevel} XP
+                    {xpOnCurrentLevel} / {xpForNextLevel} XP
                   </span>
                 </div>
               </div>
