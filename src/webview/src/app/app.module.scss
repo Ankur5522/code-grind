@@ -13,13 +13,13 @@
   font-size: 13px;
 }
 
-.stat-list {
+.statList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.stat-card {
+.statCard {
   background: var(--vscode-editor-inactiveSelectionBackground);
   border-radius: 6px;
   padding: 10px 12px;
@@ -42,14 +42,14 @@
     color: var(--vscode-charts-yellow);
   }
 
-  &__bar-track {
+  &__barTrack {
     height: 6px;
     border-radius: 3px;
     background: var(--vscode-scrollbarSlider-background);
     overflow: hidden;
   }
 
-  &__bar-fill {
+  &__barFill {
     height: 100%;
     border-radius: 3px;
     background: var(--vscode-charts-blue);
