@@ -50,7 +50,18 @@ async function main() {
     sourcemap: !production,
     platform: "browser",
     outfile: "dist/webview.js",
-    plugins: [sassPlugin(), esbuildProblemMatcherPlugin],
+    plugins: [
+      sassPlugin({
+        filter: /\.module\.scss$/,
+        type: "local-css",
+      }),
+
+      sassPlugin({
+        filter: /.scss$/,
+        type: "css",
+      }),
+      esbuildProblemMatcherPlugin,
+    ],
     logLevel: "silent",
   });
 
