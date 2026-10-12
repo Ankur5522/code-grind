@@ -1,6 +1,12 @@
 export interface FileStat {
   fileExtension: string;
-
-  /** @deprecated Don't remove and don't use it in code. It need for Backward Compatibility */
-  count: number;
+  characters: number;
+  xp: number;
 }
+
+// for future feature
+// interface PlayerProfile {
+//   totalXp: number; // sum all files extensions characters + streakXp + achievementXp
+//   streakDays: number;
+//   lastActiveDate: string;
+// }

@@ -48,7 +48,7 @@ export const StatsPage = () => {
               xpForNextLevel,
               xpOnCurrentLevel,
               progressPercent,
-            } = getLevelFromCount(statItem.count);
+            } = getLevelFromCount(statItem.xp);
 
             return (
               <div
@@ -63,13 +63,17 @@ export const StatsPage = () => {
                     LVL {currentLevel}
                   </span>
                 </div>
+
                 <div className={s.statCard__barTrack}>
                   <div
                     className={s.statCard__barFill}
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
+
                 <div className={s.statCard__footer}>
+                  <span>{statItem.characters} chars</span>
+
                   <span>
                     {xpOnCurrentLevel} / {xpForNextLevel} XP
                   </span>

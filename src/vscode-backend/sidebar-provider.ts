@@ -73,11 +73,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     if (!stats[fileExtension]) {
       stats[fileExtension] = {
         fileExtension: fileExtension,
-        count: 0,
+        characters: 0,
+        xp: 0,
       };
     }
 
-    stats[fileExtension].count += 1;
+    stats[fileExtension].characters += 1;
+    stats[fileExtension].xp += 1;
 
     // save to disk forever
     this._context.globalState.update(

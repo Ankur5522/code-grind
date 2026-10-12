@@ -2,7 +2,7 @@
   "name": "code-grind",
   "displayName": "code-grind",
   "description": "Gamify your coding with language XP, levels, and real-time stats.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "medoyed",
   "engines": {
     "vscode": "^1.90.0"
